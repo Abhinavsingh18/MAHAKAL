@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation Generator with PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header, footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+        }
+        #quotation-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .add-item-button, .generate-pdf-button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .add-item-button:hover, .generate-pdf-button:hover {
+            background-color: #0056b3;
+        }
+        .editable {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+        }
+        .image-preview img {
+            width: 100px;
+            height: auto;
+        }
+        .totals {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .totals label {
+            font-weight: bold;
+        }
+        .pagination {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .pagination button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1 style="color: red;">NEW MAHAKAL WEDDING PLANNER</h1>
+        <p>D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.</p>
+        <p><strong>Quotation</strong></p>
+    </header>
+
+    <form id="quotationForm">
+        <label for="customerName">Name:</label>
+        <input type="text" id="customerName" name="customerName" placeholder="Enter Customer Name" required>
+        <br>
+        <br>
+        <label for="venue">Venue:</label>
+        <input type="text" id="venue" name="venue" placeholder="Enter Venue" required>
+        <br>
+        <br>
+        <label for="quotationDate">Date :</label>
+        <input type="date" id="quotationDate" name="quotationDate" required>
+    </form>
+    <!-- <button onclick="generatePDF()">Generate PDF</button> -->
+    
+    <!-- Quotation Container -->
+    <section id="quotation-container">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button class="add-item-button" onclick="addItem()">Add Item</button>
+            <button class="generate-pdf-button" onclick="generatePDF()">Generate PDF</button>
+        </div>
+        <table id="quotationTable">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Image</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Items will be dynamically added here -->
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+
+        <!-- Totals Section -->
+        <div class="totals">
+            <label for="grandTotal">Grand Total:</label>
+            <span id="grandTotal">₹0.00</span>
+        </div>
+        <div class="totals">
+            <label for="discount">Discount:</label>
+            <input type="number" id="discount" placeholder="Enter Discount" onchange="updateFinalAmount()">
+        </div>
+        <div class="totals">
+            <label for="finalAmount">Final Amount:</label>
+            <span id="finalAmount">₹0.00</span>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <!-- <footer>
+        <p>GSTIN: 03ILZPS7086Q1ZK | A/c No: 50200029180692 | IFSC Code: HDFC0002223</p>
+        <p>Terms & Conditions: Goods once sold will not be taken back. Interest @24% p.a. will be charged if bill is not paid within 15 days.</p>
+    </footer> -->
+
+    <script>
+        let itemCount = 0;
+        const itemsPerPage = 10;
+        let currentPage = 1;
+        let items = [];
+
+        const quotationTable = document.getElementById('quotationTable').querySelector('tbody');
+        const pagination = document.getElementById('pagination');
+        const grandTotalElement = document.getElementById('grandTotal');
+        const discountElement = document.getElementById('discount');
+        const finalAmountElement = document.getElementById('finalAmount');
+
+        function addItem() {
+            itemCount++;
+            const item = {
+                id: itemCount,
+                name: '',
+                image: '',
+                price: 0,
+                quantity: 0,
+                total: 0
+            };
+            items.push(item);
+            renderItems();
+        }
+
+        function renderItems() {
+            quotationTable.innerHTML = '';
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const currentItems = items.slice(start, end);
+
+            currentItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.id = `item-${item.id}`;
+                row.innerHTML = `
+                    <td><input type="text" placeholder="Enter Item Name" class="editable" value="${item.name}" onchange="updateItem(${item.id}, 'name', this.value)"></td>
+                    <td>
+                        <input type="file" accept="image/*" onchange="previewImage(event, ${item.id})">
+                        <div class="image-preview" id="imagePreview-${item.id}">${item.image ? `<img src="${item.image}" alt="Item Image">` : ''}</div>
+                    </td>
+                    <td><input type="number" placeholder="Enter Price" class="editable" value="${item.price}" onchange="updateItem(${item.id}, 'price', this.value)"></td>
+                    <td><input type="number" placeholder="Enter Quantity" class="editable" value="${item.quantity}" onchange="updateItem(${item.id}, 'quantity', this.value)"></td>
+                    <td><input type="text" id="total-${item.id}" class="editable" value="${item.total.toFixed(2)}" readonly></td>
+                    <td><button onclick="removeItem(${item.id})">Remove</button></td>
+                `;
+                quotationTable.appendChild(row);
+            });
+
+            renderPagination();
+            calculateGrandTotal();
+        }
+
+        function updateItem(id, field, value) {
+            const item = items.find(i => i.id === id);
+            if (field === 'price' || field === 'quantity') {
+                item[field] = parseFloat(value) || 0;
+                item.total = item.price * item.quantity;
+            } else if (field === 'name') {
+                item.name = value;
+            }
+            renderItems();
+        }
+
+        function previewImage(event, id) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const item = items.find(i => i.id === id);
+                    item.image = reader.result;
+                    renderItems();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function calculateGrandTotal() {
+            let grandTotal = 0;
+            items.forEach(item => {
+                grandTotal += item.total;
+            });
+            grandTotalElement.innerText = `₹${grandTotal.toFixed(2)}`;
+            updateFinalAmount();
+        }
+
+        function updateFinalAmount() {
+            const grandTotal = parseFloat(grandTotalElement.innerText.replace('₹', '')) || 0;
+            const discount = parseFloat(discountElement.value) || 0;
+            const finalAmount = grandTotal - discount;
+            finalAmountElement.innerText = `₹${finalAmount.toFixed(2)}`;
+        }
+
+        function removeItem(id) {
+            items = items.filter(i => i.id !== id);
+            renderItems();
+        }
+
+        function renderPagination() {
+            pagination.innerHTML = '';
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.innerText = i;
+                button.disabled = i === currentPage;
+                button.onclick = () => {
+                    currentPage = i;
+                    renderItems();
+                };
+                pagination.appendChild(button);
+            }
+        }
+
+        async function generatePDF() {
+    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.width;
+    const pageHeight = pdf.internal.pageSize.height;
+
+    const headerHeight = 40;
+    const footerHeight = 20;
+    const contentHeight = pageHeight - headerHeight - footerHeight;
+
+    let startY = headerHeight;
+
+    // Retrieve values from the form
+    const customerName = document.getElementById('customerName').value || 'Unknown';
+    const quotationDate = document.getElementById('quotationDate').value || new Date().toLocaleDateString();
+    const venue = document.getElementById('venue').value || 'Unknown';
+    let discount = parseFloat(document.getElementById('discount').value || '0');
+
+    if (isNaN(discount) || discount < 0) {
+        discount = 0;
+    }
+
+    function addHeader(pageNumber, totalPages) {
+        pdf.setFontSize(20);
+        pdf.setTextColor(0,0,0);
+        pdf.setTextColor(255, 0, 0);
+        pdf.setFont("times", "bold");
+        pdf.text('NEW MAHAKAL WEDDING PLANNER', pageWidth / 2, 11, { align: 'center' });
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(10);
+        pdf.text('D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.', pageWidth / 2, 16, { align: 'center' });
+        pdf.text('Mobile No: 6269886524, 7697973939', pageWidth / 2, 20, { align: 'center' });
+        pdf.setFontSize(15);
+        pdf.text('Quotation', pageWidth / 2, 26, { align: 'center' });
+        pdf.setFontSize(10);
+        if (pageNumber === 1){
+        pdf.setFontSize(10);
+        pdf.text(`Name: ${customerName}`, 10, 25);
+        pdf.text(`Date: ${quotationDate}`, pageWidth - 40, 30);
+        pdf.text(`Venue: ${venue}`, 10, 30);
+        }
+    }
+
+    function addFooter(pageNumber, totalPages) {
+        pdf.setFontSize(10);
+        pdf.text(
+            `Page ${pageNumber} of ${pdf.internal.getNumberOfPages()}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            { align: 'center' }
+        );
+        pdf.text(
+            'Mobile No: 6269886524, 7697973939',
+            pageWidth / 2,
+            pageHeight - 5,
+            { align: 'center' }
+        );
+        pdf.setDrawColor(0, 0, 0);
+        pdf.line(10, pageHeight - footerHeight + 2, pageWidth - 10, pageHeight - footerHeight + 2);
+    }
+
+    // Fixed row height for consistency
+    const rowHeight = 25;
+    const rowsPerPage = Math.floor(contentHeight / rowHeight);
+
+    let pageIndex = 0;
+    let currentY = startY;
+    let grandTotal = 0;
+
+    const colX = {
+        sno: 10,
+        name: 30,
+        image: 70,
+        price: 110,
+        qty: 140,
+        total: 180
+    };
+
+    for (let i = 0; i < items.length; i++) {
+        if (currentY + rowHeight > pageHeight - footerHeight) {
+            // Draw table border for current page
+            pdf.line(10, startY - 5, pageWidth - 10, startY - 5);
+            pdf.line(10, currentY, pageWidth - 10, currentY);
+            pdf.line(10, startY - 5, 10, currentY);
+            pdf.line(pageWidth - 10, startY - 5, pageWidth - 10, currentY);
+            
+            addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+            pdf.addPage();
+            pageIndex++;
+            currentY = startY;
+            addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+        }
+
+        if (currentY === startY) {
+            addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+
+            pdf.setFontSize(10);
+            pdf.text('S.No', colX.sno, currentY);
+            pdf.text('Item Name', colX.name, currentY);
+            pdf.text('Image', colX.image, currentY);
+            pdf.text('Price', colX.price, currentY);
+            pdf.text('Quantity', colX.qty, currentY);
+            pdf.text('Total', colX.total, currentY);
+
+            // Draw header row border
+            pdf.line(10, currentY + 2, pageWidth - 10, currentY + 2);
+            
+            currentY += 10;
+        }
+
+        const item = items[i];
+        grandTotal += item.total;
+
+        // Add serial number and item details
+        pdf.text((i + 1).toString(), colX.sno, currentY);
+        pdf.text(item.name || '-', colX.name, currentY);
+        if (item.image) {
+            const img = new Image();
+            img.src = item.image;
+            // Scale image to fit fixed row height while maintaining aspect ratio
+            const maxImgHeight = rowHeight - 10; // Leave some padding
+            const imgWidth = 20;
+            const imgHeight = Math.min((img.height / img.width) * imgWidth, maxImgHeight);
+            const yOffset = (rowHeight - imgHeight) / 2;
+            pdf.addImage(item.image, 'JPEG', colX.image, currentY - yOffset, imgWidth, imgHeight);
+        }
+        pdf.text(item.price.toFixed(2) || '-', colX.price, currentY);
+        pdf.text(item.quantity.toString() || '-', colX.qty, currentY);
+        pdf.text(item.total.toFixed(2) || '-', colX.total, currentY);
+
+        // Draw horizontal line after each row
+        pdf.line(10, currentY + 5, pageWidth - 10, currentY + 5);
+
+        currentY += rowHeight;
+    }
+
+    const finalTotal = grandTotal - discount;
+
+    if (currentY + 30 > pageHeight - footerHeight) {
+        // Draw final table border
+        pdf.line(10, startY - 5, pageWidth - 10, startY - 5);
+        pdf.line(10, currentY - rowHeight + 5, pageWidth - 10, currentY - rowHeight + 5);
+        pdf.line(10, startY - 5, 10, currentY - rowHeight + 5);
+        pdf.line(pageWidth - 10, startY - 5, pageWidth - 10, currentY - rowHeight + 5);
+        
+        addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+        pdf.addPage();
+        pageIndex++;
+        currentY = startY;
+        addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+    }
+
+    // Draw final table border if not already drawn
+    pdf.line(10, startY - 5, pageWidth - 10, startY - 5);
+    pdf.line(10, currentY - rowHeight + 5, pageWidth - 10, currentY - rowHeight + 5);
+    pdf.line(10, startY - 5, 10, currentY - rowHeight + 5);
+    pdf.line(pageWidth - 10, startY - 5, pageWidth - 10, currentY - rowHeight + 5);
+
+    // Display totals
+    pdf.setFontSize(12);
+    currentY += 10;
+    pdf.text(`Grand Total: ${grandTotal.toFixed(2)}`, 10, currentY);
+    currentY += 10;
+    pdf.text(`Discount: ${discount.toFixed(2)}`, 10, currentY);
+    currentY += 10;
+    pdf.text(`Final Total: ${finalTotal.toFixed(2)}`, 10, currentY);
+    // Add Terms & Conditions
+    currentY += 20;
+    pdf.setFontSize(10);
+
+    // Check if there's enough space for the Terms & Conditions header
+    if (currentY + 10 > pageHeight - footerHeight) {
+        addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+        pdf.addPage();
+        pageIndex++;
+        currentY = startY;
+        addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+    }
+    pdf.text('Terms & Conditions', 10, currentY);
+    currentY += 10;
+    pdf.setFontSize(10);
+    const terms = [
+        '1. Artist confirmation will be finalized within three days after receiving the advance payment.',
+        '2. All costs mentioned are approximate and will be confirmed once the venue, event dimensions creative elements,', 
+        ' and content are finalized.',
+        '3. Any additions or modifications requested beyond the agreed scope will be charged extra.',
+        '4. An advance payment is required to confirm the booking. The remaining amount must be settled before the event',
+        ' date unless otherwise agreed upon.',
+        '5. All items provided are for rental purposes only and will remain the property of the firm unless explicitly',
+        'stated otherwise in the agreement.',
+        '6. The firm will not be liable for delays or non-fulfillment of services due to unforeseen circumstances such as ',
+        'natural disasters, government restrictions, strikes, or extreme weather conditions.',
+        '7. The client must ensure that the venue is ready and accessible for setup as per the agreed timeline. Any delays',
+        ' may result in additional charges.',
+        '8. All changes or additions to the project must be communicated in writing and agreed upon by both parties to avoid',
+        ' misunderstandings.'
+    ];
+
+    terms.forEach(term => {
+        if (currentY + 10 > pageHeight - footerHeight) {
+            addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+            pdf.addPage();
+            pageIndex++;
+            currentY = startY;
+            addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+        }
+        pdf.text(term, 10, currentY);
+        currentY += 10;
+    });
+
+    addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
+    pdf.save(`${customerName}.pdf`);
+}
+
+
+        renderItems();
+    </script>
+</body>
+</html>

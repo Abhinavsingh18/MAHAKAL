@@ -266,16 +266,16 @@
             // Convert images to base64 if they exist
             const processedItems = await Promise.all(items.map(async (item, index) => ({
                 sno: (index + 1).toString(),
-                name: item.name || '-',
+                name: item.name.toUpperCase() || '-',
                 image: item.image ? { image: item.image, width: 50, height: 50 } : '-',
-                price: item.price.toFixed(2) || '-',
-                quantity: item.quantity.toString() || '-',
-                total: item.total.toFixed(2) || '-'
+                price: item.price.toFixed(2).toUpperCase() || '-',
+                quantity: item.quantity.toString().toUpperCase() || '-',
+                total: item.total.toFixed(2).toUpperCase() || '-'
             })));
 
-            const customerName = document.getElementById('customerName').value || 'Unknown';
-            const quotationDate = document.getElementById('quotationDate').value || new Date().toLocaleDateString();
-            const venue = document.getElementById('venue').value || 'Unknown';
+            const customerName = document.getElementById('customerName').value.toUpperCase() || 'UNKNOWN';
+            const quotationDate = document.getElementById('quotationDate').value.toUpperCase() || new Date().toLocaleDateString().toUpperCase();
+            const venue = document.getElementById('venue').value.toUpperCase() || 'UNKNOWN';
             let discount = parseFloat(document.getElementById('discount').value || '0');
             const grandTotal = items.reduce((sum, item) => sum + item.total, 0);
             const finalTotal = grandTotal - discount;
@@ -285,21 +285,21 @@
                 pageMargins: [40, 40, 40, 60],
                 content: [
                     // Company details at the top
-                    { text: 'NEW MAHAKAL WEDDING PLANNER', style: 'header', color: 'red' },
-                    { text: 'D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.', style: 'subheader' },
+                    { text: 'NEW MAHAKAL WEDDING PLANNER', style: 'header', color: 'red', fontSize: 31, },
+                    { text: 'D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.', style: 'subheader',bold: true },
                     { text: [
-                        { text: 'Mobile No: ', style: 'subheader' },
+                        { text: 'MOBILE NO: ', style: 'subheader' },
                         { text: '6269886524, 7697973939', style: 'subheader', bold: true }
                     ]},
-                    { text: 'Email: newmahakalweddingplanner@gmail.com', style: 'subheader' },
-                    { text: 'Quotation', style: 'quotationTitle' },
+                    { text: 'EMAIL: NEWMAHAKALWEDDINGPLANNER@GMAIL.COM', style: 'subheader' },
+                    { text: 'QUOTATION', style: 'quotationTitle' },
                     
                     // Customer details
                     {
                         columns: [
-                            { text: `Name: ${customerName}`, width: '33%' },
-                            { text: `Venue: ${venue}`, width: '33%' },
-                            { text: `Date: ${quotationDate}`, width: '33%' }
+                            { text: `NAME: ${customerName}`, width: '30%',bold: true },
+                            { text: `VENUE: ${venue}`, width: '30%',bold: true },
+                            { text: `DATE: ${quotationDate}`, width: '40%', alignment: 'right',bold: true }
                         ],
                         columnGap: 10,
                         margin: [0, 20, 0, 20]
@@ -313,12 +313,12 @@
                             body: [
                                 // Header
                                 [
-                                    { text: 'S.No', style: 'tableHeader' },
-                                    { text: 'Item Name', style: 'tableHeader' },
-                                    { text: 'Image', style: 'tableHeader' },
-                                    { text: 'Price', style: 'tableHeader' },
-                                    { text: 'Quantity', style: 'tableHeader' },
-                                    { text: 'Total', style: 'tableHeader' }
+                                    { text: 'S.NO', style: 'tableHeader' },
+                                    { text: 'ITEM NAME', style: 'tableHeader' },
+                                    { text: 'IMAGE', style: 'tableHeader' },
+                                    { text: 'PRICE', style: 'tableHeader' },
+                                    { text: 'QUANTITY', style: 'tableHeader' },
+                                    { text: 'TOTAL', style: 'tableHeader' }
                                 ],
                                 // Dynamic rows
                                 ...processedItems.map(item => [
@@ -348,26 +348,26 @@
                     },
                     {
                         stack: [
-                            { text: `Grand Total: ₹${grandTotal.toFixed(2)}`, alignment: 'right', margin: [0, 20, 0, 5] },
-                            { text: `Discount: ₹${discount.toFixed(2)}`, alignment: 'right', margin: [0, 0, 0, 5] },
-                            { text: `Final Total: ₹${finalTotal.toFixed(2)}`, alignment: 'right', margin: [0, 0, 0, 20] }
+                            { text: `GRAND TOTAL: ₹${grandTotal.toFixed(2).toUpperCase()}`, alignment: 'right', margin: [0, 20, 0, 5] },
+                            { text: `DISCOUNT: ₹${discount.toFixed(2).toUpperCase()}`, alignment: 'right', margin: [0, 0, 0, 5] },
+                            { text: `FINAL TOTAL: ₹${finalTotal.toFixed(2).toUpperCase()}`, alignment: 'right', margin: [0, 0, 0, 20] }
                         ]
                     },
                     {
-                        text: 'Terms & Conditions',
+                        text: 'TERMS & CONDITIONS',
                         style: 'sectionHeader',
                         margin: [0, 20, 0, 10]
                     },
                     {
                         ol: [
-                            'Artist confirmation will be finalized within three days after receiving the advance payment.',
-                            'All costs mentioned are approximate and will be confirmed once the venue, event dimensions creative elements, and content are finalized.',
-                            'Any additions or modifications requested beyond the agreed scope will be charged extra.',
-                            'An advance payment is required to confirm the booking. The remaining amount must be settled before the event date unless otherwise agreed upon.',
-                            'All items provided are for rental purposes only and will remain the property of the firm unless explicitly stated otherwise in the agreement.',
-                            'The firm will not be liable for delays or non-fulfillment of services due to unforeseen circumstances.',
-                            'The client must ensure that the venue is ready and accessible for setup as per the agreed timeline.',
-                            'All changes or additions to the project must be communicated in writing and agreed upon by both parties.'
+                            'ARTIST CONFIRMATION WILL BE FINALIZED WITHIN THREE DAYS AFTER RECEIVING THE ADVANCE PAYMENT.',
+                            'ALL COSTS MENTIONED ARE APPROXIMATE AND WILL BE CONFIRMED ONCE THE VENUE, EVENT DIMENSIONS CREATIVE ELEMENTS, AND CONTENT ARE FINALIZED.',
+                            'ANY ADDITIONS OR MODIFICATIONS REQUESTED BEYOND THE AGREED SCOPE WILL BE CHARGED EXTRA.',
+                            'AN ADVANCE PAYMENT IS REQUIRED TO CONFIRM THE BOOKING. THE REMAINING AMOUNT MUST BE SETTLED BEFORE THE EVENT DATE UNLESS OTHERWISE AGREED UPON.',
+                            'ALL ITEMS PROVIDED ARE FOR RENTAL PURPOSES ONLY AND WILL REMAIN THE PROPERTY OF THE FIRM UNLESS EXPLICITLY STATED OTHERWISE IN THE AGREEMENT.',
+                            'THE FIRM WILL NOT BE LIABLE FOR DELAYS OR NON-FULFILLMENT OF SERVICES DUE TO UNFORESEEN CIRCUMSTANCES.',
+                            'THE CLIENT MUST ENSURE THAT THE VENUE IS READY AND ACCESSIBLE FOR SETUP AS PER THE AGREED TIMELINE.',
+                            'ALL CHANGES OR ADDITIONS TO THE PROJECT MUST BE COMMUNICATED IN WRITING AND AGREED UPON BY BOTH PARTIES.'
                         ],
                         margin: [0, 0, 0, 20],
                         fontSize: 10
@@ -376,8 +376,8 @@
                 footer: function(currentPage, pageCount) {
                     return {
                         stack: [
-                            { canvas: [ { type: 'line', x1: 40, y1: 0, x2: 515, y2: 0, lineWidth: 1 } ] },
-                            { text: `Page ${currentPage} of ${pageCount}`, alignment: 'center' },
+                            { canvas: [ { type: 'line', x1: 40, y1: 0, x2: 550, y2: 0, lineWidth: 1 } ] },
+                            { text: `PAGE ${currentPage} OF ${pageCount}`, alignment: 'center' ,margin: [0, 10, 0, 0]},
                             { text: 'MO. NO. - 6269886524, 7697973939', alignment: 'center', margin: [0, 10, 0, 5], bold: true },
                         ]
                     };
@@ -413,7 +413,7 @@
                 }
             };
 
-            pdfMake.createPdf(docDefinition).download(`${customerName}_quotation.pdf`);
+            pdfMake.createPdf(docDefinition).download(`${customerName}_QUOTATION.PDF`);
         }
 
         renderItems();

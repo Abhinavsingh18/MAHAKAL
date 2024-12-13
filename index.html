@@ -6,6 +6,8 @@
     <title>Quotation Generator with PDF</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -261,218 +263,158 @@
         }
 
         async function generatePDF() {
-    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.width;
-    const pageHeight = pdf.internal.pageSize.height;
+            // Convert images to base64 if they exist
+            const processedItems = await Promise.all(items.map(async (item, index) => ({
+                sno: (index + 1).toString(),
+                name: item.name || '-',
+                image: item.image ? { image: item.image, width: 50, height: 50 } : '-',
+                price: item.price.toFixed(2) || '-',
+                quantity: item.quantity.toString() || '-',
+                total: item.total.toFixed(2) || '-'
+            })));
 
-    const headerHeight = 40;
-    const footerHeight = 20;
-    const contentHeight = pageHeight - headerHeight - footerHeight;
+            const customerName = document.getElementById('customerName').value || 'Unknown';
+            const quotationDate = document.getElementById('quotationDate').value || new Date().toLocaleDateString();
+            const venue = document.getElementById('venue').value || 'Unknown';
+            let discount = parseFloat(document.getElementById('discount').value || '0');
+            const grandTotal = items.reduce((sum, item) => sum + item.total, 0);
+            const finalTotal = grandTotal - discount;
 
-    let startY = headerHeight;
+            const docDefinition = {
+                pageSize: 'A4',
+                pageMargins: [40, 40, 40, 60],
+                content: [
+                    // Company details at the top
+                    { text: 'NEW MAHAKAL WEDDING PLANNER', style: 'header', color: 'red' },
+                    { text: 'D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.', style: 'subheader' },
+                    { text: [
+                        { text: 'Mobile No: ', style: 'subheader' },
+                        { text: '6269886524, 7697973939', style: 'subheader', bold: true }
+                    ]},
+                    { text: 'Email: newmahakalweddingplanner@gmail.com', style: 'subheader' },
+                    { text: 'Quotation', style: 'quotationTitle' },
+                    
+                    // Customer details
+                    {
+                        columns: [
+                            { text: `Name: ${customerName}`, width: '33%' },
+                            { text: `Venue: ${venue}`, width: '33%' },
+                            { text: `Date: ${quotationDate}`, width: '33%' }
+                        ],
+                        columnGap: 10,
+                        margin: [0, 20, 0, 20]
+                    },
 
-    // Retrieve values from the form
-    const customerName = document.getElementById('customerName').value || 'Unknown';
-    const quotationDate = document.getElementById('quotationDate').value || new Date().toLocaleDateString();
-    const venue = document.getElementById('venue').value || 'Unknown';
-    let discount = parseFloat(document.getElementById('discount').value || '0');
+                    // Rest of your content (table, etc.)
+                    {
+                        table: {
+                            headerRows: 1,
+                            widths: [30, 160, 60, 60, 60, 45],
+                            body: [
+                                // Header
+                                [
+                                    { text: 'S.No', style: 'tableHeader' },
+                                    { text: 'Item Name', style: 'tableHeader' },
+                                    { text: 'Image', style: 'tableHeader' },
+                                    { text: 'Price', style: 'tableHeader' },
+                                    { text: 'Quantity', style: 'tableHeader' },
+                                    { text: 'Total', style: 'tableHeader' }
+                                ],
+                                // Dynamic rows
+                                ...processedItems.map(item => [
+                                    item.sno,
+                                    { 
+                                        text: item.name,
+                                        wordWrap: true,
+                                        alignment: 'left'
+                                    },
+                                    item.image,
+                                    item.price,
+                                    item.quantity,
+                                    item.total
+                                ])
+                            ]
+                        },
+                        layout: {
+                            hLineWidth: function(i, node) { return 1; },
+                            vLineWidth: function(i, node) { return 1; },
+                            hLineColor: function(i, node) { return '#aaa'; },
+                            vLineColor: function(i, node) { return '#aaa'; },
+                            paddingLeft: function(i, node) { return 10; },
+                            paddingRight: function(i, node) { return 10; },
+                            paddingTop: function(i, node) { return 10; },
+                            paddingBottom: function(i, node) { return 10; }
+                        }
+                    },
+                    {
+                        stack: [
+                            { text: `Grand Total: ₹${grandTotal.toFixed(2)}`, alignment: 'right', margin: [0, 20, 0, 5] },
+                            { text: `Discount: ₹${discount.toFixed(2)}`, alignment: 'right', margin: [0, 0, 0, 5] },
+                            { text: `Final Total: ₹${finalTotal.toFixed(2)}`, alignment: 'right', margin: [0, 0, 0, 20] }
+                        ]
+                    },
+                    {
+                        text: 'Terms & Conditions',
+                        style: 'sectionHeader',
+                        margin: [0, 20, 0, 10]
+                    },
+                    {
+                        ol: [
+                            'Artist confirmation will be finalized within three days after receiving the advance payment.',
+                            'All costs mentioned are approximate and will be confirmed once the venue, event dimensions creative elements, and content are finalized.',
+                            'Any additions or modifications requested beyond the agreed scope will be charged extra.',
+                            'An advance payment is required to confirm the booking. The remaining amount must be settled before the event date unless otherwise agreed upon.',
+                            'All items provided are for rental purposes only and will remain the property of the firm unless explicitly stated otherwise in the agreement.',
+                            'The firm will not be liable for delays or non-fulfillment of services due to unforeseen circumstances.',
+                            'The client must ensure that the venue is ready and accessible for setup as per the agreed timeline.',
+                            'All changes or additions to the project must be communicated in writing and agreed upon by both parties.'
+                        ],
+                        margin: [0, 0, 0, 20],
+                        fontSize: 10
+                    }
+                ],
+                footer: function(currentPage, pageCount) {
+                    return {
+                        stack: [
+                            { canvas: [ { type: 'line', x1: 40, y1: 0, x2: 515, y2: 0, lineWidth: 1 } ] },
+                            { text: `Page ${currentPage} of ${pageCount}`, alignment: 'center' },
+                            { text: 'MO. NO. - 6269886524, 7697973939', alignment: 'center', margin: [0, 10, 0, 5], bold: true },
+                        ]
+                    };
+                },
+                styles: {
+                    header: {
+                        fontSize: 20,
+                        bold: true,
+                        alignment: 'center',
+                        margin: [0, 0, 0, 5]
+                    },
+                    subheader: {
+                        fontSize: 12,
+                        alignment: 'center',
+                        margin: [0, 0, 0, 5]
+                    },
+                    quotationTitle: {
+                        fontSize: 16,
+                        bold: true,
+                        alignment: 'center',
+                        margin: [0, 10, 0, 10]
+                    },
+                    tableHeader: {
+                        bold: true,
+                        fontSize: 12,
+                        fillColor: '#f4f4f4'
+                    },
+                    sectionHeader: {
+                        fontSize: 14,
+                        bold: true,
+                        margin: [0, 20, 0, 10]
+                    }
+                }
+            };
 
-    if (isNaN(discount) || discount < 0) {
-        discount = 0;
-    }
-
-    function addHeader(pageNumber, totalPages) {
-        pdf.setFontSize(20);
-        pdf.setTextColor(0,0,0);
-        pdf.setTextColor(255, 0, 0);
-        pdf.setFont("times", "bold");
-        pdf.text('NEW MAHAKAL WEDDING PLANNER', pageWidth / 2, 11, { align: 'center' });
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(10);
-        pdf.text('D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.', pageWidth / 2, 16, { align: 'center' });
-        pdf.text('Mobile No: 6269886524, 7697973939', pageWidth / 2, 20, { align: 'center' });
-        pdf.setFontSize(15);
-        pdf.text('Quotation', pageWidth / 2, 26, { align: 'center' });
-        pdf.setFontSize(10);
-        if (pageNumber === 1){
-        pdf.setFontSize(10);
-        pdf.text(`Name: ${customerName}`, 10, 25);
-        pdf.text(`Date: ${quotationDate}`, pageWidth - 40, 30);
-        pdf.text(`Venue: ${venue}`, 10, 30);
+            pdfMake.createPdf(docDefinition).download(`${customerName}_quotation.pdf`);
         }
-    }
-
-    function addFooter(pageNumber, totalPages) {
-        pdf.setFontSize(10);
-        pdf.text(
-            `Page ${pageNumber} of ${pdf.internal.getNumberOfPages()}`,
-            pageWidth / 2,
-            pageHeight - 10,
-            { align: 'center' }
-        );
-        pdf.text(
-            'Mobile No: 6269886524, 7697973939',
-            pageWidth / 2,
-            pageHeight - 5,
-            { align: 'center' }
-        );
-        pdf.setDrawColor(0, 0, 0);
-        pdf.line(10, pageHeight - footerHeight + 2, pageWidth - 10, pageHeight - footerHeight + 2);
-    }
-
-    // Fixed row height for consistency
-    const rowHeight = 25;
-    const rowsPerPage = Math.floor(contentHeight / rowHeight);
-
-    let pageIndex = 0;
-    let currentY = startY;
-    let grandTotal = 0;
-
-    const colX = {
-        sno: 10,
-        name: 30,
-        image: 70,
-        price: 110,
-        qty: 140,
-        total: 180
-    };
-
-    for (let i = 0; i < items.length; i++) {
-        if (currentY + rowHeight > pageHeight - footerHeight) {
-            // Draw table border for current page
-            pdf.line(10, startY - 5, pageWidth - 10, startY - 5);
-            pdf.line(10, currentY, pageWidth - 10, currentY);
-            pdf.line(10, startY - 5, 10, currentY);
-            pdf.line(pageWidth - 10, startY - 5, pageWidth - 10, currentY);
-            
-            addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-            pdf.addPage();
-            pageIndex++;
-            currentY = startY;
-            addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-        }
-
-        if (currentY === startY) {
-            addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-
-            pdf.setFontSize(10);
-            pdf.text('S.No', colX.sno, currentY);
-            pdf.text('Item Name', colX.name, currentY);
-            pdf.text('Image', colX.image, currentY);
-            pdf.text('Price', colX.price, currentY);
-            pdf.text('Quantity', colX.qty, currentY);
-            pdf.text('Total', colX.total, currentY);
-
-            // Draw header row border
-            pdf.line(10, currentY + 2, pageWidth - 10, currentY + 2);
-            
-            currentY += 10;
-        }
-
-        const item = items[i];
-        grandTotal += item.total;
-
-        // Add serial number and item details
-        pdf.text((i + 1).toString(), colX.sno, currentY);
-        pdf.text(item.name || '-', colX.name, currentY);
-        if (item.image) {
-            const img = new Image();
-            img.src = item.image;
-            // Scale image to fit fixed row height while maintaining aspect ratio
-            const maxImgHeight = rowHeight - 10; // Leave some padding
-            const imgWidth = 20;
-            const imgHeight = Math.min((img.height / img.width) * imgWidth, maxImgHeight);
-            const yOffset = (rowHeight - imgHeight) / 2;
-            pdf.addImage(item.image, 'JPEG', colX.image, currentY - yOffset, imgWidth, imgHeight);
-        }
-        pdf.text(item.price.toFixed(2) || '-', colX.price, currentY);
-        pdf.text(item.quantity.toString() || '-', colX.qty, currentY);
-        pdf.text(item.total.toFixed(2) || '-', colX.total, currentY);
-
-        // Draw horizontal line after each row
-        pdf.line(10, currentY + 5, pageWidth - 10, currentY + 5);
-
-        currentY += rowHeight;
-    }
-
-    const finalTotal = grandTotal - discount;
-
-    if (currentY + 30 > pageHeight - footerHeight) {
-        // Draw final table border
-        pdf.line(10, startY - 5, pageWidth - 10, startY - 5);
-        pdf.line(10, currentY - rowHeight + 5, pageWidth - 10, currentY - rowHeight + 5);
-        pdf.line(10, startY - 5, 10, currentY - rowHeight + 5);
-        pdf.line(pageWidth - 10, startY - 5, pageWidth - 10, currentY - rowHeight + 5);
-        
-        addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-        pdf.addPage();
-        pageIndex++;
-        currentY = startY;
-        addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-    }
-
-    // Draw final table border if not already drawn
-    pdf.line(10, startY - 5, pageWidth - 10, startY - 5);
-    pdf.line(10, currentY - rowHeight + 5, pageWidth - 10, currentY - rowHeight + 5);
-    pdf.line(10, startY - 5, 10, currentY - rowHeight + 5);
-    pdf.line(pageWidth - 10, startY - 5, pageWidth - 10, currentY - rowHeight + 5);
-
-    // Display totals
-    pdf.setFontSize(12);
-    currentY += 10;
-    pdf.text(`Grand Total: ${grandTotal.toFixed(2)}`, 10, currentY);
-    currentY += 10;
-    pdf.text(`Discount: ${discount.toFixed(2)}`, 10, currentY);
-    currentY += 10;
-    pdf.text(`Final Total: ${finalTotal.toFixed(2)}`, 10, currentY);
-    // Add Terms & Conditions
-    currentY += 20;
-    pdf.setFontSize(10);
-
-    // Check if there's enough space for the Terms & Conditions header
-    if (currentY + 10 > pageHeight - footerHeight) {
-        addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-        pdf.addPage();
-        pageIndex++;
-        currentY = startY;
-        addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-    }
-    pdf.text('Terms & Conditions', 10, currentY);
-    currentY += 10;
-    pdf.setFontSize(10);
-    const terms = [
-        '1. Artist confirmation will be finalized within three days after receiving the advance payment.',
-        '2. All costs mentioned are approximate and will be confirmed once the venue, event dimensions creative elements,', 
-        ' and content are finalized.',
-        '3. Any additions or modifications requested beyond the agreed scope will be charged extra.',
-        '4. An advance payment is required to confirm the booking. The remaining amount must be settled before the event',
-        ' date unless otherwise agreed upon.',
-        '5. All items provided are for rental purposes only and will remain the property of the firm unless explicitly',
-        'stated otherwise in the agreement.',
-        '6. The firm will not be liable for delays or non-fulfillment of services due to unforeseen circumstances such as ',
-        'natural disasters, government restrictions, strikes, or extreme weather conditions.',
-        '7. The client must ensure that the venue is ready and accessible for setup as per the agreed timeline. Any delays',
-        ' may result in additional charges.',
-        '8. All changes or additions to the project must be communicated in writing and agreed upon by both parties to avoid',
-        ' misunderstandings.'
-    ];
-
-    terms.forEach(term => {
-        if (currentY + 10 > pageHeight - footerHeight) {
-            addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-            pdf.addPage();
-            pageIndex++;
-            currentY = startY;
-            addHeader(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-        }
-        pdf.text(term, 10, currentY);
-        currentY += 10;
-    });
-
-    addFooter(pageIndex + 1, Math.ceil(items.length / rowsPerPage));
-    pdf.save(`${customerName}.pdf`);
-}
-
 
         renderItems();
     </script>

@@ -78,6 +78,29 @@
             padding: 5px 10px;
             cursor: pointer;
         }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            header, footer {
+                padding: 5px;
+            }
+            .add-item-button, .generate-pdf-button {
+                padding: 5px 10px;
+                font-size: 14px;
+            }
+            th, td {
+                padding: 5px;
+                font-size: 12px;
+            }
+            .totals {
+                text-align: left;
+                margin-top: 10px;
+            }
+            .totals label, .totals span, .totals input {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -285,7 +308,7 @@
                 pageMargins: [40, 40, 40, 60],
                 content: [
                     // Company details at the top
-                    { text: 'NEW MAHAKAL WEDDING PLANNER', style: 'header', color: 'red', fontSize: 31, },
+                    { text: 'NEW MAHAKAL WEDDING PLANNER', style: 'header', color: 'red', fontSize: 40, },
                     { text: 'D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.', style: 'subheader',bold: true },
                     { text: [
                         { text: 'MOBILE NO: ', style: 'subheader' },

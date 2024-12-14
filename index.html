@@ -433,17 +433,10 @@
                         bold: true,
                         margin: [0, 20, 0, 10]
                     }
-                },
-                compress: true // Enable compression to reduce PDF size
+                }
             };
 
-            pdfMake.createPdf(docDefinition).getBlob((blob) => {
-                if (blob.size > 5 * 1024 * 1024) { // Check if the PDF size exceeds 5MB
-                    alert('The generated PDF is too large. Please reduce the number of items or images.');
-                } else {
-                    pdfMake.createPdf(docDefinition).download(`${customerName}_QUOTATION.PDF`);
-                }
-            });
+            pdfMake.createPdf(docDefinition).download(`${customerName}_QUOTATION.PDF`);
         }
 
         renderItems();

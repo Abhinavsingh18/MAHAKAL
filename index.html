@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,31 +18,40 @@
             flex-direction: column;
             height: 100vh;
         }
-        header, footer {
+
+        header,
+        footer {
             text-align: center;
             padding: 10px;
             background-color: #f4f4f4;
             border: 1px solid #ddd;
         }
+
         #quotation-container {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
             background-color: #fff;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
         }
+
         th {
             background-color: #f4f4f4;
         }
-        .add-item-button, .generate-pdf-button {
+
+        .add-item-button,
+        .generate-pdf-button {
             margin: 10px 5px;
             padding: 10px 20px;
             background-color: #007BFF;
@@ -49,65 +59,87 @@
             border: none;
             cursor: pointer;
         }
-        .add-item-button:hover, .generate-pdf-button:hover {
+
+        .add-item-button:hover,
+        .generate-pdf-button:hover {
             background-color: #0056b3;
         }
+
         .editable {
             background-color: #fff;
             border: 1px solid #ddd;
             padding: 5px;
             text-align: center;
         }
+
         .image-preview img {
             width: 100px;
             height: auto;
         }
+
         .totals {
             margin-top: 20px;
             text-align: right;
         }
+
         .totals label {
             font-weight: bold;
         }
+
         .pagination {
             text-align: center;
             margin: 20px 0;
         }
+
         .pagination button {
             margin: 0 5px;
             padding: 5px 10px;
             cursor: pointer;
         }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
-            header, footer {
+
+            header,
+            footer {
                 padding: 5px;
             }
-            .add-item-button, .generate-pdf-button {
+
+            .add-item-button,
+            .generate-pdf-button {
                 padding: 5px 10px;
                 font-size: 14px;
             }
-            th, td {
+
+            th,
+            td {
                 padding: 5px;
                 font-size: 12px;
             }
+
             .totals {
                 text-align: left;
                 margin-top: 10px;
             }
-            .totals label, .totals span, .totals input {
+
+            .totals label,
+            .totals span,
+            .totals input {
                 font-size: 14px;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header>
-        <h1 style="color: red; font-family: 'Times New Roman', Times, serif; font-weight: bold;">NEW MAHAKAL WEDDING PLANNER</h1>
-        <p style="font-family: 'Times New Roman', Times, serif; font-weight: bold;">D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.</p>
+        <h1 style="color: red; font-family: 'Times New Roman', Times, serif; font-weight: bold;">NEW MAHAKAL WEDDING
+            PLANNER</h1>
+        <p style="font-family: 'Times New Roman', Times, serif; font-weight: bold;">Krishna Mall Roxy Talkies Near Roxy
+            Pull, LASHKAR, GWALIOR, M.P.</p>
         <p style="font-family: 'Times New Roman', Times, serif; font-weight: bold;"><strong>Quotation</strong></p>
     </header>
 
@@ -124,7 +156,7 @@
         <input type="date" id="quotationDate" name="quotationDate" required>
     </form>
     <!-- <button onclick="generatePDF()">Generate PDF</button> -->
-    
+
     <!-- Quotation Container -->
     <section id="quotation-container">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -347,14 +379,15 @@
                 content: [
                     // Company details at the top
                     { text: 'NEW MAHAKAL WEDDING PLANNER', style: 'header', color: 'red', fontSize: 40, },
-                    { text: 'D-BLOCK,SAMADHIYA COLONY,NEAR SANTOSH VATIKA ,LASHKAR,GWALIOR,M.P.', style: 'subheader', bold: true },
+                    { text: 'Krishna Mall Roxy Talkies Near Roxy Pull, LASHKAR, GWALIOR, M.P.', style: 'subheader', bold: true },
                     {
                         text: [
                             { text: 'MOBILE NO: ', style: 'subheader' },
-                            { text: '6269886524, 7697973939', style: 'subheader', bold: true }
+                            { text: '6269886524, 9201190091', style: 'subheader', bold: true }
                         ]
                     },
                     { text: 'EMAIL: NEWMAHAKALWEDDINGPLANNER@GMAIL.COM', style: 'subheader' },
+                    { text: 'WEBSITE: http://newmahakaldj.com/', style: 'subheader' },
                     { text: 'QUOTATION', style: 'quotationTitle' },
 
                     // Customer details
@@ -395,14 +428,14 @@
                             ]
                         },
                         layout: {
-                            hLineWidth: function(i, node) { return 1; },
-                            vLineWidth: function(i, node) { return 1; },
-                            hLineColor: function(i, node) { return '#aaa'; },
-                            vLineColor: function(i, node) { return '#aaa'; },
-                            paddingLeft: function(i, node) { return 10; },
-                            paddingRight: function(i, node) { return 10; },
-                            paddingTop: function(i, node) { return 10; },
-                            paddingBottom: function(i, node) { return 10; }
+                            hLineWidth: function (i, node) { return 1; },
+                            vLineWidth: function (i, node) { return 1; },
+                            hLineColor: function (i, node) { return '#aaa'; },
+                            vLineColor: function (i, node) { return '#aaa'; },
+                            paddingLeft: function (i, node) { return 10; },
+                            paddingRight: function (i, node) { return 10; },
+                            paddingTop: function (i, node) { return 10; },
+                            paddingBottom: function (i, node) { return 10; }
                         }
                     },
 
@@ -465,12 +498,12 @@
                         margin: [0, 20, 0, 10]
                     }
                 },
-                footer: function(currentPage, pageCount) {
+                footer: function (currentPage, pageCount) {
                     return {
                         stack: [
                             { canvas: [{ type: 'line', x1: 40, y1: 0, x2: 550, y2: 0, lineWidth: 1 }] },
                             { text: `PAGE ${currentPage} OF ${pageCount}`, alignment: 'center', margin: [0, 10, 0, 0] },
-                            { text: 'MO. NO. - 6269886524, 7697973939', alignment: 'center', margin: [0, 10, 0, 5], bold: true },
+                            { text: 'MO. NO. - 6269886524, 9201190091', alignment: 'center', margin: [0, 10, 0, 5], bold: true },
                         ]
                     };
                 }
@@ -482,4 +515,5 @@
         renderItems();
     </script>
 </body>
+
 </html>
